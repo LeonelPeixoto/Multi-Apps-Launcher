@@ -15,9 +15,11 @@ namespace MultiAppsLauncher
         /// <summary>
         /// Path of file where the settings of this process is saved.
         /// </summary>
-        private string settingsFilePath;
+        private string settingsFilePath = Application.StartupPath + "\\" + Process.GetCurrentProcess().ProcessName + ".ini";
 
         private string launchOnStartupTag = "launchOnStartup";
+        private string startMinimizedTag = "startMinimized";
+        private string minimizeToTrayTag = "minimizeToTray";
         private string delayTag = "delay";
         private string xCoordTag = "xCoord";
         private string yCoordTag = "yCoord";
@@ -61,8 +63,6 @@ namespace MultiAppsLauncher
             thisProcessIsAllowed = AllowMultipleInstancesOfThisProcess(false);
 
             Debug(this.ProductName + " started.");
-
-            settingsFilePath = Application.StartupPath + "\\" + this.ProductName + ".ini";
 
             LoadSettingsFromDisk();
             LoadApplicationsListFromDisk();
@@ -168,9 +168,30 @@ namespace MultiAppsLauncher
         {
             listBox_appsList.SelectedIndex = listBox_appsList.IndexFromPoint(e.X, e.Y);
 
-            int i = listBox_appsList.SelectedIndex;
-            if (i >= 0 && i < appsList.Count)
-                RefreshButtons();
+            if (e.Button == MouseButtons.Right)
+            {
+                int i = listBox_appsList.SelectedIndex;
+
+                if (i >= 0 && i < appsList.Count)
+                {
+                    if (appsList.Count > 0)
+                    {
+                        contextMenuStrip1.Visible = true;
+                        launchToolStripMenuItem.Visible = true;
+                        editArgumentsToolStripMenuItem.Visible = true;
+                        removeToolStripMenuItem.Visible = true;
+                    }
+                }
+                else
+                {
+                    contextMenuStrip1.Visible = false;
+                    launchToolStripMenuItem.Visible = false;
+                    editArgumentsToolStripMenuItem.Visible = false;
+                    removeToolStripMenuItem.Visible = false;
+                }
+            }
+
+            RefreshButtons();
         }
 
         /// <summary>
@@ -198,6 +219,16 @@ namespace MultiAppsLauncher
         }
 
         /// <summary>
+        /// Selected index of the list of applications has changed event handler.
+        /// </summary>
+        /// <param name="sender">Object that send the event.</param>
+        /// <param name="e">Arguments of the event.</param>
+        private void listBox_appsList_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            RefreshButtons();
+        }
+
+        /// <summary>
         /// Drag & Drop enter event handler (change the icon).
         /// </summary>
         /// <param name="sender">Object that send the event.</param>
@@ -217,6 +248,35 @@ namespace MultiAppsLauncher
             string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
             if (AddApplicationsToCurrentList(files) > 0)
                 SaveApplicationsListToDisk();
+        }
+
+        /// <summary>
+        /// Main form resize event handler - Minimize to system tray.
+        /// </summary>
+        /// <param name="sender">Object that send the event.</param>
+        /// <param name="e">Arguments of the event.</param>
+        private void MainForm_Resize(object sender, EventArgs e)
+        {
+            if (checkBox_MinimizeToTray.Checked && this.WindowState == FormWindowState.Minimized)
+            {
+                this.notifyIcon.BalloonTipTitle = Application.ProductName;
+                this.notifyIcon.Text = Application.ProductName;
+                notifyIcon.Visible = true;
+                notifyIcon.ShowBalloonTip(3000);
+                this.ShowInTaskbar = false;
+            }
+        }
+
+        /// <summary>
+        /// Notify Icon double click event handler - Restore from system tray.
+        /// </summary>
+        /// <param name="sender">Object that send the event.</param>
+        /// <param name="e">Arguments of the event.</param>
+        private void notifyIcon_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            this.WindowState = FormWindowState.Normal;
+            this.ShowInTaskbar = true;
+            notifyIcon.Visible = false;
         }
 
         /// <summary>
@@ -308,7 +368,9 @@ namespace MultiAppsLauncher
             if (multipleInstances)
                 return true;
 
-            Process[] processes = Process.GetProcessesByName(this.ProductName);
+            string thisProcessName = Process.GetCurrentProcess().ProcessName;
+
+            Process[] processes = Process.GetProcessesByName(thisProcessName);
 
             if (processes.Length > 1)
             {
@@ -361,17 +423,17 @@ namespace MultiAppsLauncher
         {
             int applicationsAdded = 0;
             int index = appsList.Count();
-            string fileExtension;
-            string[] allowedExtensions = { "exe", "bat", "com" };
+            //string fileExtension;
+            //string[] allowedExtensions = { "exe", "bat", "com" };
 
             for (int i = 0; i < applicationInfos.Count(); i++)
             {
                 if (applicationInfos.ElementAt(i) == null)
                     continue;
 
-                fileExtension = applicationInfos.ElementAt(i).applicationPath.Split('.').Last().ToLower();
-                if (!allowedExtensions.Contains(fileExtension))
-                    continue;
+                //fileExtension = applicationInfos.ElementAt(i).applicationPath.Split('.').Last().ToLower();
+                //if (!allowedExtensions.Contains(fileExtension))
+                  //  continue;
 
                 if (AddApplicationToCurrentList(applicationInfos.ElementAt(i), index))
                 {
@@ -472,12 +534,13 @@ namespace MultiAppsLauncher
         /// </summary>
         private void RefreshButtons()
         {
+            int i = listBox_appsList.SelectedIndex;
+
             if (appsList.Count > 0)
             {
                 button_clearList.Enabled = true;
                 button_launch.Enabled = true;
 
-                int i = listBox_appsList.SelectedIndex;
                 if (i >= 0 && i < appsList.Count)
                 {
                     button_removeApp.Enabled = true;
@@ -546,15 +609,15 @@ namespace MultiAppsLauncher
                     applicationDirectory += pathDirectories[i] + '\\';
                 }
 
-                System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo(applicationPath);
+                ProcessStartInfo startInfo = new ProcessStartInfo(applicationPath);
                 startInfo.WorkingDirectory = applicationDirectory;
                 startInfo.Arguments = arguments;
-                startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Normal;
+                startInfo.WindowStyle = ProcessWindowStyle.Normal;
                 startInfo.UseShellExecute = false;
                 startInfo.RedirectStandardOutput = false;
                 startInfo.RedirectStandardError = false;
 
-                System.Diagnostics.Process process = new System.Diagnostics.Process();
+                Process process = new Process();
                 process.StartInfo = startInfo;
                 process.Start();
                 Debug(applicationName + " Launched.");
@@ -563,10 +626,16 @@ namespace MultiAppsLauncher
             catch (Exception ex)
             {
                 Debug(applicationName + " Failed: " + ex.Message);
+
+                // If not an executable maybe its a data file, so try to open with the default program
+                Process fileOpener = new Process();
+                fileOpener.StartInfo.FileName = "explorer";
+                fileOpener.StartInfo.Arguments = applicationPath;
+                fileOpener.Start();
             }
             finally
             {
-
+                Debug(applicationName + " opened with default program.");
             }
             return false;
         }
@@ -666,7 +735,9 @@ namespace MultiAppsLauncher
                     string parameter, value;
 
                     bool launchOnStart = false;
-                    int delay = 0;
+                    bool startMinimized = false;
+                    bool minimizeToTray = false;
+                    float delay = 0;
                     int xCoord = this.DesktopLocation.X;
                     int yCoord = this.DesktopLocation.Y;
                     int width = this.Width;
@@ -685,8 +756,12 @@ namespace MultiAppsLauncher
 
                                 if (parameter.Equals(launchOnStartupTag))
                                     bool.TryParse(value, out launchOnStart);
+                                else if (parameter.Equals(startMinimizedTag))
+                                    bool.TryParse(value, out startMinimized);
+                                else if (parameter.Equals(minimizeToTrayTag))
+                                    bool.TryParse(value, out minimizeToTray);
                                 else if (parameter.Equals(delayTag))
-                                    int.TryParse(value, out delay);
+                                    float.TryParse(value, out delay);
                                 else if (parameter.Equals(xCoordTag))
                                     int.TryParse(value, out xCoord);
                                 else if (parameter.Equals(yCoordTag))
@@ -702,7 +777,9 @@ namespace MultiAppsLauncher
                     }
 
                     checkBox_launchOnStart.Checked = launchOnStart;
-                    delayNumericUpDown.Value = delay;
+                    checkBox_StartMinimized.Checked = startMinimized;
+                    checkBox_MinimizeToTray.Checked = minimizeToTray;
+                    delayNumericUpDown.Value = (decimal)delay;
                     if (maximized)
                         this.WindowState = FormWindowState.Maximized;
                     else
@@ -711,6 +788,9 @@ namespace MultiAppsLauncher
                         this.Height = height;
                         this.StartPosition = FormStartPosition.Manual;
                         this.SetDesktopLocation(xCoord, yCoord);
+
+                        if (checkBox_StartMinimized.Checked)
+                            this.WindowState = FormWindowState.Minimized;
                     }
 
                     Debug("Application settings loaded.");
@@ -746,6 +826,8 @@ namespace MultiAppsLauncher
                 string equal = " = ";
 
                 lines.Add(launchOnStartupTag + equal + checkBox_launchOnStart.Checked.ToString());
+                lines.Add(startMinimizedTag + equal + checkBox_StartMinimized.Checked.ToString());
+                lines.Add(minimizeToTrayTag + equal + checkBox_MinimizeToTray.Checked.ToString());
                 lines.Add(delayTag + equal + (int)delayNumericUpDown.Value);
                 lines.Add(xCoordTag + equal + this.DesktopLocation.X);
                 lines.Add(yCoordTag + equal + this.DesktopLocation.Y);
