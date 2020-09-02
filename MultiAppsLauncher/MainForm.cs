@@ -17,6 +17,8 @@ namespace MultiAppsLauncher
         /// </summary>
         private string settingsFilePath = Application.StartupPath + "\\" + Process.GetCurrentProcess().ProcessName + ".ini";
 
+        private string defaultFileOpener = "explorer";
+
         private string launchOnStartupTag = "launchOnStartup";
         private string startMinimizedTag = "startMinimized";
         private string minimizeToTrayTag = "minimizeToTray";
@@ -31,6 +33,7 @@ namespace MultiAppsLauncher
         /// Path of file where the current list of applications is saved.
         /// </summary>
         private string appsListFilePath = Application.StartupPath + "\\AppsList.txt";
+        private DateTime appListFileLastWriteTime;
 
         /// <summary>
         /// Current list of applications.
@@ -160,6 +163,32 @@ namespace MultiAppsLauncher
         }
 
         /// <summary>
+        /// Open the applications list button click event handler.
+        /// </summary>
+        /// <param name="sender">Object that send the event.</param>
+        /// <param name="e">Arguments of the event.</param>
+        private void button_OpenAppsList_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (File.Exists(appsListFilePath)) {
+                    Process fileOpener = new Process();
+                    fileOpener.StartInfo.FileName = defaultFileOpener;
+                    fileOpener.StartInfo.Arguments = appsListFilePath;
+                    fileOpener.Start();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug(ex.Message);
+            }
+            finally
+            {
+
+            }
+        }
+
+        /// <summary>
         /// List of applications mouse down event handler (selection).
         /// </summary>
         /// <param name="sender">Object that send the event.</param>
@@ -264,6 +293,32 @@ namespace MultiAppsLauncher
                 notifyIcon.Visible = true;
                 notifyIcon.ShowBalloonTip(3000);
                 this.ShowInTaskbar = false;
+            }
+        }
+
+        /// <summary>
+        /// Main form Got Focus and is activated event handler.
+        /// </summary>
+        /// <param name="sender">Object that send the event.</param>
+        /// <param name="e">Arguments of the event.</param>
+        private void MainForm_Activated(object sender, EventArgs e)
+        {
+            try
+            {
+                if (appListFileLastWriteTime != null && File.Exists(appsListFilePath))
+                {
+                    FileInfo fileInfo = new FileInfo(appsListFilePath);
+                    if (!appListFileLastWriteTime.Equals(fileInfo.LastWriteTime))
+                        LoadApplicationsListFromDisk();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug(ex.Message);
+            }
+            finally
+            {
+
             }
         }
 
@@ -500,19 +555,31 @@ namespace MultiAppsLauncher
         /// <param name="applicationIndex">Index of the application in the list.</param>
         private bool RemoveApplicationFromCurrentList(int applicationIndex)
         {
-            if (applicationIndex < 0 || applicationIndex >= appsList.Count)
-                return false;
+            try
+            {
+                if (applicationIndex < 0 || applicationIndex >= appsList.Count)
+                    return false;
 
-            listBox_appsList.Items.RemoveAt(applicationIndex);
-            appsList.RemoveAt(applicationIndex);
-            Debug("APP removed.");
+                listBox_appsList.Items.RemoveAt(applicationIndex);
+                appsList.RemoveAt(applicationIndex);
+                Debug("APP removed.");
 
-            RefreshButtons();
+                RefreshButtons();
 
-            if (appsList.Count != 0)
-                SaveApplicationsListToDisk();
+                if (appsList.Count != 0)
+                    SaveApplicationsListToDisk();
 
-            return true;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Debug(ex.Message);
+            }
+            finally
+            {
+
+            }
+            return false;
         }
 
         /// <summary>
@@ -521,12 +588,23 @@ namespace MultiAppsLauncher
         /// <param name="applicationIndex">Index of the application in the list.</param>
         private void EditApplicationArguments(int applicationIndex)
         {
-            if (applicationIndex < 0 || applicationIndex >= appsList.Count)
-                return;
+            try
+            {
+                if (applicationIndex < 0 || applicationIndex >= appsList.Count)
+                    return;
 
-            EditArgsForm editArgsForm = new EditArgsForm(this, appsList[applicationIndex].applicationArguments, applicationIndex);
-            editArgsForm.Show();
-            this.Enabled = false;
+                EditArgsForm editArgsForm = new EditArgsForm(this, appsList[applicationIndex].applicationArguments, applicationIndex);
+                editArgsForm.Show();
+                this.Enabled = false;
+            }
+            catch(Exception ex)
+            {
+                Debug(ex.Message);
+            }
+            finally
+            {
+
+            }
         }
 
         /// <summary>
@@ -629,7 +707,7 @@ namespace MultiAppsLauncher
 
                 // If not an executable maybe its a data file, so try to open with the default program
                 Process fileOpener = new Process();
-                fileOpener.StartInfo.FileName = "explorer";
+                fileOpener.StartInfo.FileName = defaultFileOpener;
                 fileOpener.StartInfo.Arguments = applicationPath;
                 fileOpener.Start();
             }
@@ -649,13 +727,18 @@ namespace MultiAppsLauncher
             {
                 try
                 {
+                    button_OpenAppsList.Enabled = true;
+
+                    FileInfo fileInfo = new FileInfo(appsListFilePath);
+                    appListFileLastWriteTime = fileInfo.LastWriteTime;
+
                     string[] lines = File.ReadAllLines(appsListFilePath);
                     ApplicationInfo[] applicationInfos = new ApplicationInfo[lines.Length];
                     string[] pathAndArgs;
 
                     for (int i = 0; i < lines.Length; i++)
                     {
-                        if(lines[i].Length > 0)
+                        if (lines[i].Length > 0)
                         {
                             pathAndArgs = lines[i].Split('|');
                             if (pathAndArgs.Length > 0)
@@ -666,6 +749,9 @@ namespace MultiAppsLauncher
                             }
                         }
                     }
+
+                    appsList.Clear();
+                    listBox_appsList.Items.Clear();
 
                     AddApplicationsToCurrentList(applicationInfos);
 
@@ -684,7 +770,10 @@ namespace MultiAppsLauncher
                 }
             }
             else
+            {
                 Debug("APPs list file does not exist.");
+                button_OpenAppsList.Enabled = false;
+            }
 
             return false;
         }
@@ -706,6 +795,12 @@ namespace MultiAppsLauncher
                 }
 
                 File.WriteAllLines(appsListFilePath, lines);
+
+                button_OpenAppsList.Enabled = true;
+
+                FileInfo fileInfo = new FileInfo(appsListFilePath);
+                appListFileLastWriteTime = fileInfo.LastWriteTime;
+
                 Debug("APPs list saved.");
                 return true;
             }

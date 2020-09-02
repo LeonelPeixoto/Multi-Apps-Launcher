@@ -44,7 +44,12 @@ namespace MultiAppsLauncher
         override
         public string ToString()
         {
-            return applicationPath + "|" + applicationArguments;
+            string result = applicationPath;
+
+            if (applicationArguments != null && applicationArguments.Length > 0)
+                result += "|" + applicationArguments;
+
+            return result;
         }
         
         public ApplicationInfo Clone()

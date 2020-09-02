@@ -51,6 +51,7 @@ namespace MultiAppsLauncher
             this.notifyIcon = new System.Windows.Forms.NotifyIcon(this.components);
             this.checkBox_MinimizeToTray = new System.Windows.Forms.CheckBox();
             this.checkBox_StartMinimized = new System.Windows.Forms.CheckBox();
+            this.button_OpenAppsList = new System.Windows.Forms.Button();
             this.contextMenuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.delayNumericUpDown)).BeginInit();
@@ -120,9 +121,9 @@ namespace MultiAppsLauncher
             this.listBox_appsList.Name = "listBox_appsList";
             this.listBox_appsList.Size = new System.Drawing.Size(570, 225);
             this.listBox_appsList.TabIndex = 6;
+            this.listBox_appsList.SelectedIndexChanged += new System.EventHandler(this.listBox_appsList_SelectedIndexChanged);
             this.listBox_appsList.DoubleClick += new System.EventHandler(this.listBox_appsList_DoubleClick);
             this.listBox_appsList.MouseDown += new System.Windows.Forms.MouseEventHandler(this.listBox_appsList_MouseDown);
-            this.listBox_appsList.SelectedIndexChanged += new System.EventHandler(this.listBox_appsList_SelectedIndexChanged);
             // 
             // contextMenuStrip1
             // 
@@ -245,12 +246,24 @@ namespace MultiAppsLauncher
             this.checkBox_StartMinimized.Text = "Start minimized";
             this.checkBox_StartMinimized.UseVisualStyleBackColor = true;
             // 
+            // button_OpenAppsList
+            // 
+            this.button_OpenAppsList.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.button_OpenAppsList.Location = new System.Drawing.Point(349, 12);
+            this.button_OpenAppsList.Name = "button_OpenAppsList";
+            this.button_OpenAppsList.Size = new System.Drawing.Size(94, 23);
+            this.button_OpenAppsList.TabIndex = 17;
+            this.button_OpenAppsList.Text = "Open APPs List";
+            this.button_OpenAppsList.UseVisualStyleBackColor = true;
+            this.button_OpenAppsList.Click += new System.EventHandler(this.button_OpenAppsList_Click);
+            // 
             // MainForm
             // 
             this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(594, 321);
+            this.Controls.Add(this.button_OpenAppsList);
             this.Controls.Add(this.checkBox_StartMinimized);
             this.Controls.Add(this.checkBox_MinimizeToTray);
             this.Controls.Add(this.label2);
@@ -269,6 +282,7 @@ namespace MultiAppsLauncher
             this.MinimumSize = new System.Drawing.Size(610, 263);
             this.Name = "MainForm";
             this.Text = "Multi Apps Launcher";
+            this.Activated += new System.EventHandler(this.MainForm_Activated);
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainForm_FormClosing);
             this.Load += new System.EventHandler(this.MainForm_Load);
             this.DragDrop += new System.Windows.Forms.DragEventHandler(this.MainForm_DragDrop);
@@ -305,6 +319,7 @@ namespace MultiAppsLauncher
         private NotifyIcon notifyIcon;
         private CheckBox checkBox_MinimizeToTray;
         private CheckBox checkBox_StartMinimized;
+        private Button button_OpenAppsList;
     }
 }
 
