@@ -52,6 +52,7 @@ namespace MultiAppsLauncher
             this.checkBox_MinimizeToTray = new System.Windows.Forms.CheckBox();
             this.checkBox_StartMinimized = new System.Windows.Forms.CheckBox();
             this.button_OpenAppsList = new System.Windows.Forms.Button();
+            this.openFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.delayNumericUpDown)).BeginInit();
@@ -130,9 +131,10 @@ namespace MultiAppsLauncher
             this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.launchToolStripMenuItem,
             this.editArgumentsToolStripMenuItem,
+            this.openFolderToolStripMenuItem,
             this.removeToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(157, 70);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(157, 114);
             // 
             // launchToolStripMenuItem
             // 
@@ -147,6 +149,13 @@ namespace MultiAppsLauncher
             this.editArgumentsToolStripMenuItem.Size = new System.Drawing.Size(156, 22);
             this.editArgumentsToolStripMenuItem.Text = "Edit Arguments";
             this.editArgumentsToolStripMenuItem.Click += new System.EventHandler(this.editArgumentsToolStripMenuItem_Click);
+            // 
+            // openFolderToolStripMenuItem
+            // 
+            this.openFolderToolStripMenuItem.Name = "openFolderToolStripMenuItem";
+            this.openFolderToolStripMenuItem.Size = new System.Drawing.Size(156, 22);
+            this.openFolderToolStripMenuItem.Text = "Open folder";
+            this.openFolderToolStripMenuItem.Click += new System.EventHandler(this.openFolderToolStripMenuItem_Click);
             // 
             // removeToolStripMenuItem
             // 
@@ -320,6 +329,7 @@ namespace MultiAppsLauncher
         private CheckBox checkBox_MinimizeToTray;
         private CheckBox checkBox_StartMinimized;
         private Button button_OpenAppsList;
+        private ToolStripMenuItem openFolderToolStripMenuItem;
     }
 }
 

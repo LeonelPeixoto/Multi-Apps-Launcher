@@ -17,7 +17,7 @@ namespace MultiAppsLauncher
         /// </summary>
         private string settingsFilePath = Application.StartupPath + "\\" + Process.GetCurrentProcess().ProcessName + ".ini";
 
-        private string defaultFileOpener = "explorer";
+        private string defaultFileOpener = "explorer.exe";
 
         private string launchOnStartupTag = "launchOnStartup";
         private string startMinimizedTag = "startMinimized";
@@ -208,6 +208,7 @@ namespace MultiAppsLauncher
                         contextMenuStrip1.Visible = true;
                         launchToolStripMenuItem.Visible = true;
                         editArgumentsToolStripMenuItem.Visible = true;
+                        openFolderToolStripMenuItem.Visible = true;
                         removeToolStripMenuItem.Visible = true;
                     }
                 }
@@ -216,6 +217,7 @@ namespace MultiAppsLauncher
                     contextMenuStrip1.Visible = false;
                     launchToolStripMenuItem.Visible = false;
                     editArgumentsToolStripMenuItem.Visible = false;
+                    openFolderToolStripMenuItem.Visible = false;
                     removeToolStripMenuItem.Visible = false;
                 }
             }
@@ -268,7 +270,7 @@ namespace MultiAppsLauncher
         }
 
         /// <summary>
-        /// Add aplication(s) with the Drag & Drop event handler.
+        /// Add application(s) with the Drag & Drop event handler.
         /// </summary>
         /// <param name="sender">Object that send the event.</param>
         /// <param name="e">Arguments of the event.</param>
@@ -335,7 +337,7 @@ namespace MultiAppsLauncher
         }
 
         /// <summary>
-        /// Launch aplication with the right mouse button menu event handler.
+        /// Launch application with the right mouse button menu event handler.
         /// </summary>
         /// <param name="sender">Object that send the event.</param>
         /// <param name="e">Arguments of the event.</param>
@@ -347,7 +349,7 @@ namespace MultiAppsLauncher
         }
 
         /// <summary>
-        /// Edit aplication arguments with the right mouse button menu event handler.
+        /// Edit selected application arguments with the right mouse button menu event handler.
         /// </summary>
         /// <param name="sender">Object that send the event.</param>
         /// <param name="e">Arguments of the event.</param>
@@ -358,7 +360,39 @@ namespace MultiAppsLauncher
         }
 
         /// <summary>
-        /// Remove aplication with the right mouse button menu event handler.
+        /// Open selected application folder with the right mouse button menu event handler.
+        /// </summary>
+        /// <param name="sender">Object that send the event.</param>
+        /// <param name="e">Arguments of the event.</param>
+        private void openFolderToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            int i = listBox_appsList.SelectedIndex;
+
+            if (i < 0 || i >= appsList.Count)
+                return;
+
+            try
+            {
+                if (File.Exists(appsListFilePath))
+                {
+                    Process fileOpener = new Process();
+                    fileOpener.StartInfo.FileName = defaultFileOpener;
+                    fileOpener.StartInfo.Arguments = "/select," + appsList[i].applicationPath;
+                    fileOpener.Start();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug(ex.Message);
+            }
+            finally
+            {
+
+            }
+        }
+
+        /// <summary>
+        /// Remove selected application with the right mouse button menu event handler.
         /// </summary>
         /// <param name="sender">Object that send the event.</param>
         /// <param name="e">Arguments of the event.</param>
