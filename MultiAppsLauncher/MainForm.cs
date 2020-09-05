@@ -927,6 +927,7 @@ namespace MultiAppsLauncher
                 }
                 catch (Exception ex)
                 {
+                    Console.WriteLine(ex.Message);
                     Debug(ex.Message);
                     MessageBox.Show("Unable to load the application settings.");
                     return false;
